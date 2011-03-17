@@ -27,6 +27,14 @@ Dependencies:
     - Pymouse (get it from https://github.com/pepijndevos/PyMouse)
 
 ==============================================================
+Notes:
+    - I developed this using Ubuntu 10.04, 32-bit, Intel processor
+    - The screen resolution is important because the mouse clicking logic has some 
+        hard-coded numbers. I know, I know, it should be fixed, but this is the 
+        'hack-together' version. My screen resolution is 1920x1200.
+        
+
+==============================================================
 Known bugs:
     - Infinite loop if there are 2 or more recurring moves
 
