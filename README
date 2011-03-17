@@ -18,7 +18,7 @@ To run it:
     2. cd to the SolitaireSolver directory
     3. Type in the command line:
         $ python runner.py
-    4. Quickly change windows 
+    4. Quickly change windows so that the Solitaire window is maximized in the front. 
 
 ==============================================================
 Dependencies:
@@ -29,14 +29,14 @@ Dependencies:
 ==============================================================
 Notes:
     - I developed this using Ubuntu 10.04, 32-bit, Intel processor
-    - The screen resolution is important because the mouse clicking logic has some 
-        hard-coded numbers. I know, I know, it should be fixed, but this is the 
-        'hack-together' version. My screen resolution is 1920x1200.
+    - My screen resolution is 1920x1200.The screen resolution is 
+        important because the mouse clicking logic has some hard-coded 
+        numbers. I know, I know, it should be fixed, but this is the 
+        'hack-together' version. 
         
-
 ==============================================================
-Known bugs:
+Known bugs/problems:
     - Infinite loop if there are 2 or more recurring moves
+    - Sometimes mouse clicks don't register (usually happens when a 
+        pile is stacked very deep)
 
-
-This is an arbitrary edit.
