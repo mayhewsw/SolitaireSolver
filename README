@@ -1,0 +1,33 @@
+README for Solitaire Solver
+by Stephen Mayhew
+
+This solitaire solver is a Python program that will solve a Klondike 
+solitaire game using OpenCV. 
+
+The program flow is as follows:
+    - runner.py has the main loop 
+        - Inside this loop, processCards.py is called. This takes a screenshot, 
+            and finds and extracts card data.
+        - This data is passed to SolitaireSolver.py which uses that data to decide 
+            on the next move. It moves the mouse, and makes the next move. It also
+            checks to see if the game is over.
+            
+==============================================================
+To run it:
+    1. Open up the Klondike game in AisleRiot Solitaire (make sure it is full screen)
+    2. cd to the SolitaireSolver directory
+    3. Type in the command line:
+        $ python runner.py
+    4. Quickly change windows 
+
+==============================================================
+Dependencies:
+    - OpenCV (package opencv)
+    - Python Bindings for OpenCV (package python-opencv)
+    - Pymouse (get it from https://github.com/pepijndevos/PyMouse)
+
+==============================================================
+Known bugs:
+    - Infinite loop if there are 2 or more recurring moves
+
+
