@@ -136,7 +136,16 @@ def findBestTemplateMatch(tplList, img):
 def extractCards(fileName = None):
     """
     Given an image, this will extract the cards from it.
+
+    This takes a filename as an optional argument
+    This filename should be the name of an image file.
+
+    This returns a dictionary of the form:
+        (x, y) : Card image
+    It is likely that the output from this will go to the
+    getMeaningFromCards() function.
     """
+    
     if fileName == None:
         mat = takeScreenCapture()
     else:
