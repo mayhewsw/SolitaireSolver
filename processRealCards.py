@@ -1,4 +1,5 @@
-import gtk.gdk
+# ProcessRealCards
+
 import cv
 import numpy
 import time
@@ -6,29 +7,7 @@ import os
 import string
 import pytesser
 import Image
-
-def takeScreenCapture(screenShotNum = ""):
-    time.sleep(1)
-    
-    w = gtk.gdk.get_default_root_window()
-    sz = w.get_size()
-    #print "The size of the window is %d x %d" % sz
-    pb = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB,False,8,sz[0],sz[1])
-    pb = pb.get_from_drawable(w,w.get_colormap(),0,0,0,0,sz[0],sz[1])
-
-    # Convert gtk.PixelBuf to a NumPy array
-    array = pb.get_pixels_array()
-
-    # Convert NumPy array to CvMat
-    mat = cv.fromarray(array)
-
-    # Convert RGB to BGR
-    cv.CvtColor(mat, mat, cv.CV_RGB2BGR)
-
-    #cv.ShowImage("win",mat)
-    #cv.WaitKey(0)
-
-    return mat
+import math
 
 def getMeaningFromCards(cards):
     """
@@ -55,8 +34,9 @@ def getMeaningFromCards(cards):
         cardImg = cv.CreateImageHeader((card.width, card.height), 8, 3)
         cv.SetData(cardImg, card.tostring())
 
-        numAndSuit3 = cv.GetSubRect(cardImg, (0,0,30,80))
-
+        numAndSuit3 = cv.GetSubRect(cardImg, (12,12,30,90))
+        #numAndSuit3 = cardImg
+        
         numAndSuit1 = cv.CreateImage((numAndSuit3.width, numAndSuit3.height), 8, 1)
         cv.CvtColor(numAndSuit3, numAndSuit1, cv.CV_RGB2GRAY)
         # Convert the 1 channel grayscale to 3 channel grayscale
@@ -88,10 +68,10 @@ def getMeaningFromCards(cards):
 
         cards[k] = (num, suit)
 
-        #cv.ShowImage("NumandSuit", numAndSuit)
-        #cv.WaitKey(0)
 
-    print cards
+#        cv.ShowImage("NumandSuit", numAndSuit3)
+#        cv.WaitKey(0)
+
     return cards
 
 
@@ -125,56 +105,44 @@ def findBestTemplateMatch(tplList, img):
             minTpl = minVal
             tString = t
 
-
-    #print minTpl, tString
-    #cv.ShowImage("win", img)
-    #cv.ShowImage("win2", result)
-    #cv.WaitKey(0)
+        print minVal, t
+        cv.ShowImage("win", img)
+        cv.ShowImage("win2", result)
+        cv.WaitKey(0)
 
     return tString
         
 
-def extractCards(fileName = None):
+def extractCards(fileName):
     """
     Given an image, this will extract the cards from it.
-
-    This takes a filename as an optional argument
-    This filename should be the name of an image file.
-
-    This returns a dictionary of the form:
-        (x, y) : Card image
-    It is likely that the output from this will go to the
-    getMeaningFromCards() function.
     """
-    
-    if fileName == None:
-        mat = takeScreenCapture()
-    else:
-        mat = cv.LoadImage(fileName)
+    mat = cv.LoadImage(fileName)
 
     # First crop the image: but only crop out the bottom.
     # It is useful to have all dimensions accurate to the screen
     # because otherwise they will throw off the mouse moving and clicking.
     # Cropping out the bottom does not change anything in terms of the mouse.
-    unnec_top_distance = 130
-    unnec_bottom_distance = 40
-    margin = 50
-    submat = cv.GetSubRect(mat, (0,0,mat.width, mat.height - unnec_bottom_distance))
+    #unnec_top_distance = 130
+    #unnec_bottom_distance = 40
+    #margin = 50
+    #submat = cv.GetSubRect(mat, (0,0,mat.width, mat.height - unnec_bottom_distance))
+    submat = mat
     subImg = cv.CreateImageHeader((submat.width, submat.height), 8, 3)
     cv.SetData(subImg, submat.tostring())
-
+    
 
     gray = cv.CreateImage((submat.width, submat.height), 8, 1)
     cv.CvtColor(submat, gray, cv.CV_RGB2GRAY)
 
-    thresh = 250
+    thresh = 200
     max_value = 255
     cv.Threshold(gray, gray, thresh, max_value, cv.CV_THRESH_BINARY)
 
     cv.Not(gray,gray)
-    #cv.ShowImage("sub", submat)
+    #cv.ShowImage("sub", gray)
     #cv.WaitKey(0)
-
+    
     storage = cv.CreateMemStorage (0)
 
     cpy = cv.CloneImage(gray)
@@ -189,9 +157,13 @@ def extractCards(fileName = None):
             # It turns out that all the cards are about 44000 in area...
             # It would definitely be nice to have a better way to do this:
             # ie, find the size of the card programmatically and use it then
-            if(area > 44000 and area < submat.width*submat.height*2/3):
-                bb = cv.BoundingRect(contours)
+            bb = cv.BoundingRect(contours)
+
+            if(area > 4000 and area < submat.width*submat.height*2/3):
+                ROI = cv.GetSubRect(submat, bb)
+                elongation = calcElongation(ROI, bb)
                 bboxes.append(bb)
+                
             contours = contours.h_next()
 
     #drawBoundingBoxes(bboxes, submat)
@@ -207,7 +179,28 @@ def extractCards(fileName = None):
         cards[(box[0], box[1])] = card
 
     return cards
+
+def calcElongation(ROI, bb):
+    covarMat = cv.CreateMat(2,2, cv.CV_32FC1)
+    ROIimg = cv.CreateMat(ROI.width, ROI.height, cv.CV_16SC1)
+    cv.SetData(ROIimg, ROI.tostring())
+    cv.CalcCovarMatrix([ROIimg], covarMat, ROIimg[0], cv.CV_COVAR_ROWS)
     
+    eigenVals = cv.CreateMat(2, 1, cv.CV_32FC1)
+    eigenVecs = cv.CreateMat(2, 1, cv.CV_32FC1)
+    #cv.SVD(covarMat, eigenVals)#, flags = cv.CV_SVD_MODIFY_A)
+    eps = 1.1 #unused
+    cv.EigenVV(covarMat, eigenVals, eigenVecs, eps)
+    
+    lambda1 = eigenVals[0,0]
+    lambda2 = eigenVals[1,0]
+    #print lambda1, lambda2
+    if(min(lambda1, lambda2) != 0):
+        elongation = math.sqrt(float(max(lambda1, lambda2)) / float(min(lambda1, lambda2)))
+
+    #cv.ShowImage('win', ROI)
+    #cv.WaitKey(0)
+    return elongation
 
 def drawBoundingBoxes(bb, img):
     for b in bb:
@@ -239,9 +232,14 @@ def contourToPointList(contour):
 
 
 if __name__ == '__main__':
-    cards = extractCards('CardImages/4_heart.jpg')
+    cards = extractCards('CardImages/2_diamond.jpg')
+    for k in cards.keys():
+        c = cards[k]
+        cv.ShowImage("win", c)
+        cv.WaitKey(0)
+    meaning = getMeaningFromCards(cards)
     print cards
-    #c = cards[cards.keys()[0]]
+    
     #print c
 
     
