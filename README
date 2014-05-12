@@ -22,9 +22,13 @@ To run it:
 
 ==============================================================
 Dependencies:
-    - OpenCV (package opencv)
+    - OpenCV (package opencv) (4.19.2013: no longer available)
     - Python Bindings for OpenCV (package python-opencv)
     - Pymouse (get it from https://github.com/pepijndevos/PyMouse)
+    - XLib (package: python-xlib)
+    - Pytesser (get it here: https://code.google.com/p/pytesser/)
+    - Tesseract (package: tesseract-ocr)
+
 
 ==============================================================
 Notes:

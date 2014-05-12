@@ -91,6 +91,7 @@ def getMeaningFromCards(cards):
         #cv.ShowImage("NumandSuit", numAndSuit)
         #cv.WaitKey(0)
 
+    print cards
     return cards
 
 
